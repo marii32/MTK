@@ -1,0 +1,108 @@
+import lingo/pegcode/driver;
+import string;
+import ds/list;
+
+Expr ::= Sum, Mult, Const;
+Sum(lhs: Expr, rhs: Expr);
+Mult(lhs: Expr, rhs: Expr);
+Const(val: int);
+
+StackExpr ::= StackSum, StackMult, StackInt;
+StackInt(val: int);
+StackSum();
+StackMult();
+
+
+string_to_expression(str: string) -> Expr {
+    e_gr = "#include arith.lingo";
+    parsic(
+        compilePegGrammar(e_gr),
+        str,
+        SemanticActions(setTree(defaultPegActions.t, "createConst", \s -> Const(s2i(s[0]))))
+    )
+}
+
+
+expression_to_rpn_string(curr: Expr) -> string {
+    switch (curr : Expr) {
+        Sum(lhs, rhs): {
+            expression_to_rpn_string(lhs) + " " + expression_to_rpn_string(rhs) + " +";
+        };
+        Mult(lhs, rhs): {
+            expression_to_rpn_string(lhs) + " " + expression_to_rpn_string(rhs) + " *";
+        };
+        Const(val): {
+            i2s(val);
+        };
+    };
+}
+
+
+expression_to_rpn_expression(expr: Expr) -> [StackExpr] {
+    switch (expr : Expr) {
+        Const(val): {
+            [StackInt(val)];
+        }
+        Mult(lhs, rhs): {
+            concat(concat(expression_to_rpn_expression(lhs), expression_to_rpn_expression(rhs)), [StackMult()])
+        }
+        Sum(lhs, rhs): {
+            concat(concat(expression_to_rpn_expression(lhs), expression_to_rpn_expression(rhs)), [StackSum()])
+        }
+    }
+}
+
+
+rpn_expression_to_string(stack: [StackExpr]) -> string {
+    if (length(stack) == 0) {
+        ""
+    } else {
+        switch (stack[0] : StackExpr) {
+            StackInt(val): {
+                i2s(val) + " " + rpn_expression_to_string(subrange(stack, 1, length(stack) - 1)) + " ";
+            }
+            StackMult() : {
+                "* " +  rpn_expression_to_string(subrange(stack, 1, length(stack) - 1)) + " ";
+            }
+            StackSum() : {
+                "+ " +  rpn_expression_to_string(subrange(stack, 1, length(stack) - 1)) + " ";
+            }
+        }
+    }
+}
+
+solve_rpn_expression(RPN: [StackExpr], stack: [int]) -> int {
+    if (length(RPN) == 0) {
+        stack[0];
+    } else {
+        switch (RPN[0] : StackExpr) {
+            StackInt(val): {
+                solve_rpn_expression(tail(RPN), concat(stack, [val]));
+            }
+            StackSum(): {
+                solve_rpn_expression(tail(RPN), concat(subrange(stack, 0, length(stack) - 2), [stack[length(stack) - 1] + stack[length(stack) - 2]]));
+            }
+            StackMult(): {
+                solve_rpn_expression(tail(RPN), concat(subrange(stack, 0, length(stack) - 2), [stack[length(stack) - 1] * stack[length(stack) - 2]]));
+            }
+        }
+    }
+}
+
+rpn_string_to_rpn(str : string) -> [StackExpr] {
+	grammar = "#include rpn.lingo"; 
+	parsic(compilePegGrammar(grammar), str, defaultPegActions); 
+}
+
+main() {
+
+    rpn_str = "1 1 +";
+    println("String Rpn Expression:");
+    println(rpn_str);
+    println("String Rpn Expression to Rpn Expression:");
+    rpn_expression2 : [StackExpr] = rpn_string_to_rpn(rpn_str);
+    println(rpn_expression2);
+    println(i2s(solve_rpn_expression(rpn_expression2, [])));
+
+}
+
