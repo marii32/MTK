@@ -1,0 +1,9 @@
+exp = (sum | mult | int)+;
+
+sum = ws "+" ws { StackSum() };
+mult = ws "*" ws { StackMult() };
+
+int = ws digit+ $v ws { StackInt(s2i($v)) };
+digit = '0' - '9';
+
+ws = (' ' | '\t')*;

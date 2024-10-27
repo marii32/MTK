@@ -1,0 +1,13 @@
+S = sum;
+
+sum = mul:l "+" sum:r { Sum(:l, :r)} 
+    | mul;
+
+mul = factor:l "*" mul :r { Mult(:l, :r)} 
+    | factor;
+
+factor = int | "(" S :e ")" {:e};
+
+int = digit+ $d { Const(s2i($d)) };
+
+digit = '0'-'9';
