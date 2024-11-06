@@ -430,18 +430,8 @@ toCommon(e : Expr) -> Div {
 }
 
 main() {
-    vars = [Pair("x", RatNum(2, 1))];
-    tree = setTreeValues(TreeEmpty(), vars);
-    //expr = parse("x + 1/x");
-    expr1 = parse("c*x + d*x");
-    expr2 = parse("(a + b + c + c + a + b)");
-    //println(e2s(expr2));
-    //res = simplifyByRules(expr2, [convertToRule("a*x + b*x", "(a+b)*x"), convertToRule("a*x - b*x", "(a-b)*x")]);
-    //res = crossApplyExprRules([expr1, expr2], [convertToRule("a*x + b*x", "(a+b)*x")]);
-    
-    //res = trySimplify(expr2, convertToRule("a*x + b*x", "(a+b)*x"));
-    res = simplifyExprByRules(expr2, [convertToRule("x + y", "y + x"), convertToRule("x + x", "2*x"), convertToRule("x + (y + z)", "y + (z+x)")]);
+    expr = parse("(a + b + c + c + a + b)");
+    res = simplifyExprByRules(expr, [convertToRule("x + y", "y + x"), convertToRule("x + x", "2*x"), convertToRule("x + (y + z)", "y + (z+x)")]);
     println(e2s(res));
-    //println(res[1]);
     quit(0);
 }
